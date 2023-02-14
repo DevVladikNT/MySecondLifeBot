@@ -3,9 +3,11 @@ import random
 import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 import sqlite3
+import sys
 
 admin = 214304884
-token = input("Введите token: ")
+token = sys.argv[1]
+# token = input("Введите token: ")
 bot = telebot.TeleBot(token, parse_mode=None)
 
 
