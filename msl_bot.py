@@ -6,8 +6,9 @@ import sqlite3
 import sys
 
 admin = 214304884
-token = sys.argv[1]
-# token = input("Введите token: ")
+with open('../MSLB_tools/token.txt') as token_file:
+    token = token_file.read().strip()
+    print(token)
 bot = telebot.TeleBot(token, parse_mode=None)
 
 
