@@ -8,7 +8,6 @@ import sys
 admin = 214304884
 with open('../MSLB_tools/token.txt') as token_file:
     token = token_file.read().strip()
-    print(token)
 bot = telebot.TeleBot(token, parse_mode=None)
 
 
@@ -42,26 +41,47 @@ def user_buttons():
 
 
 def check_user(message):
-    conn = sqlite3.connect('db.sqlite')
+    conn = sqlite3.connect('../MSLB_tools/db.sqlite')
     cursor = conn.cursor()
-    cursor.execute(f'select * from Players where player_id={message.from_user.id}')
+    cursor.execute(f'select nickname from Players where player_id={message.from_user.id}')
     result = cursor.fetchall()
+    conn.close()
     if not result:
-        cursor.execute(f'insert into Players values ({message.from_user.id}, "{message.from_user.username}")')
-        conn.commit()
+        return False, message.from_user.username
+    else:
+        return True, result[0][0]
+
+
+def add_user(user_id, nickname):
+    conn = sqlite3.connect('../MSLB_tools/db.sqlite')
+    cursor = conn.cursor()
+    cursor.execute(f'insert into Players values ({user_id}, "{nickname}")')
+    conn.commit()
     conn.close()
 
 
 @bot.message_handler(commands=['start'])
 def command_start(message):
-    check_user(message)
-    text = inspect.cleandoc(f"""
-        Привет, {message.from_user.username}!
-        Я надеюсь тебе нравятся RPG
-    """) if message.from_user.language_code == 'ru' else inspect.cleandoc(f"""
-        Hi, {message.from_user.username}!
-        I hope you like RPG
-    """)
+    exists, nickname = check_user(message)
+    if exists:
+        text = inspect.cleandoc(f"""
+            Привет, {nickname}, я тебя помню.
+            Давай продолжим!
+        """) if message.from_user.language_code == 'ru' else inspect.cleandoc(f"""
+            Hi, {nickname}, I remember you.
+            Let's continue!
+        """)
+    else:
+        nickname += f"#{rand_gen(1000, 9999)}"
+        text = inspect.cleandoc(f"""
+            Привет, {message.from_user.username}!
+            Я надеюсь тебе нравятся RPG.
+            Предлагаю ник {nickname}.
+        """) if message.from_user.language_code == 'ru' else inspect.cleandoc(f"""
+            Hi, {message.from_user.username}!
+            I hope you like RPG.
+            I suggest nick {nickname}.
+        """)
     bot.send_message(message.chat.id, text, parse_mode='Markdown', reply_markup=user_buttons())
 
 
